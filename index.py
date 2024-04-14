@@ -15,12 +15,15 @@ def scrap_page_start_up(driver, seconds_wait, my_list):
     page_start_ups = WebDriverWait(driver, seconds_wait).until(
         EC.presence_of_all_elements_located((By.ID, "searchResults"))
     )
-    # while page_start_ups[0].text.startswith("Traceback"):
-    #     page_start_ups = WebDriverWait(driver, seconds_wait).until(
-    #         EC.presence_of_all_elements_located((By.ID, "searchResults"))
-    #     )
     for page_start_up in page_start_ups:
-        my_list.append(page_start_up)
+        discover_button = WebDriverWait(page_start_up, SECONDS_WAIT).until(
+        EC.presence_of_element_located((By.XPATH, "//div[@class='ui button rounded  black']"))
+        )
+        driver.execute_script("arguments[0].click();", discover_button)
+        location = WebDriverWait(driver, SECONDS_WAIT).until(
+        EC.presence_of_element_located((By.XPATH, "//div[@class='ui grid']//div[@class='twelve wide column']//h2"))
+        )
+        my_list.append(location.text)
 
 def check_pages_availability(driver):
     try:
@@ -83,43 +86,26 @@ try:
 
     start_ups = []
 
-    scrap_page_start_up(driver,SECONDS_WAIT, start_ups)
+    #scrap_page_start_up(driver,SECONDS_WAIT, start_ups)
 
     number_of_page = 1
     print('Page: ' + str(number_of_page))
     there_are_pages = check_pages_availability(driver)
     #1-github
-    #2-estrarre informazioni startup per ogni pagina
+    #2-estrarre informazioni startup per ogni pagina di lista startup
     #3-andare a vedere numero massimo pagine e mettere un limite in un if su number of pages
     #4-estrarre le informazioni desiderate dopo il test del punto 2
     while(there_are_pages[0]):
         if there_are_pages[1] is not None:
             try:
-                driver.execute_script("arguments[0].click();", there_are_pages[1])
                 number_of_page = number_of_page + 1
                 print('Page: ' + str(number_of_page))
                 if(number_of_page == 15):
                     break
+                driver.execute_script("arguments[0].click();", there_are_pages[1])             
                 scrap_page_start_up(driver,SECONDS_WAIT, start_ups)
             except StaleElementReferenceException:
                 blank = True          
         there_are_pages = check_pages_availability(driver)
-    #to do for each start up in start_ups list
-    # discover_button = WebDriverWait(start_ups[0], SECONDS_WAIT).until(
-    #         EC.presence_of_element_located((By.XPATH, "//div[@class='ui button rounded  black']"))
-    # )
-    # driver.execute_script("arguments[0].click();", discover_button)
-    # location = WebDriverWait(driver, SECONDS_WAIT).until(
-    # EC.presence_of_element_located((By.XPATH, "//div[@class='ui grid']//div[@class='twelve wide column']//h2"))
-    # )
-
-    # print(location.text)
-
-    #wait
-    # region_dropdown = WebDriverWait(driver, SECONDS_WAIT).until(
-    #     EC.presence_of_element_located((By.ID, "fdsfvd"))
-    # )
-    # region_dropdown.click()
-
 finally:
     driver.close()
