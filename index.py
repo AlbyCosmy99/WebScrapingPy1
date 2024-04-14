@@ -9,45 +9,51 @@ options = webdriver.ChromeOptions()
 
 SECONDS_WAIT = 5
 
-HEADLESS = True
+HEADLESS = False
 
 def scrap_page_start_up(driver, seconds_wait, my_list):
     page_start_ups = WebDriverWait(driver, seconds_wait).until(
         EC.presence_of_all_elements_located((By.ID, "searchResults"))
     )
-    for page_start_up in page_start_ups:
-        discover_button = WebDriverWait(page_start_up, SECONDS_WAIT).until(
-        EC.presence_of_element_located((By.XPATH, "//div[@class='ui button rounded  black']"))
+
+    length = len(page_start_ups)
+    i = 0
+    while i < length:
+        page_start_ups = WebDriverWait(driver, seconds_wait).until(
+            EC.presence_of_all_elements_located((By.ID, "searchResults"))
         )
-        driver.execute_script("arguments[0].click();", discover_button)
+        discover_button = WebDriverWait(page_start_ups[i], SECONDS_WAIT).until(
+        EC.presence_of_all_elements_located((By.XPATH, "//div[@class='ui button rounded  black']"))
+        )
+        driver.execute_script("arguments[0].click();", discover_button[i])
         location = WebDriverWait(driver, SECONDS_WAIT).until(
         EC.presence_of_element_located((By.XPATH, "//div[@class='ui grid']//div[@class='twelve wide column']//h2"))
         )
         my_list.append(location.text)
+        driver.back()
+        i = i + 1
 
-def check_pages_availability(driver):
+def pages_available(driver):
     try:
-        forward_icon = WebDriverWait(driver, 2).until(
-            EC.presence_of_element_located((By.XPATH, '//div[@class="ui pagination menu grid customNavigator"]//a[@title="Go to next page" and @rel="next"]'))
+        last_page_icon = WebDriverWait(driver, 2).until(
+            EC.presence_of_element_located((By.XPATH, '//div[@class="ui pagination menu grid customNavigator"]//a[@title="Go to last page"]'))
         )
-        # span = WebDriverWait(driver, 10).until(
-        #     EC.presence_of_element_located((By.CSS_SELECTOR, "div.ui.pagination.menu.grid.customNavigator a > i.caret.right.icon"))
-        # )
-        if not forward_icon:
-            return [False, None]
-        elif forward_icon.get_attribute('disabled') is not None:
-            return [False, forward_icon]
-        else:
-            print(forward_icon.get_attribute('disabled'))
-            return [True, forward_icon]
-    except StaleElementReferenceException:
-        return [True, None]
-    except TimeoutException:
-        forward_icon = WebDriverWait(driver, 2).until(
-            EC.presence_of_element_located((By.XPATH, '//div[@class="ui pagination menu grid customNavigator"]//a[@title="Go to next page" and @rel="next" and @disabled="disabled"]'))            
+        driver.execute_script("arguments[0].click();", last_page_icon)   
+        pages_count = WebDriverWait(driver, 2).until(
+            EC.presence_of_element_located((By.XPATH, '//div[@class="ui pagination menu grid customNavigator"]'))
         )
-        if forward_icon:
-            return [False, forward_icon]
+        last_num_pages = pages_count.text.split("\n")
+        last_num_page = last_num_pages[len(last_num_pages)-1]
+
+        first_page_icon = WebDriverWait(driver, 2).until(
+            EC.presence_of_element_located((By.XPATH, '//div[@class="ui pagination menu grid customNavigator"]//a[@title="Go to first page"]'))
+        )
+        driver.execute_script("arguments[0].click();", first_page_icon) 
+
+        print(last_num_page)
+        return last_num_page
+    except:
+        return 1 #there is only one page available
 
 if HEADLESS:
     options.add_argument('--headless')
@@ -86,26 +92,24 @@ try:
 
     start_ups = []
 
-    #scrap_page_start_up(driver,SECONDS_WAIT, start_ups)
-
     number_of_page = 1
     print('Page: ' + str(number_of_page))
-    there_are_pages = check_pages_availability(driver)
+    pages = pages_available(driver)
+
+    scrap_page_start_up(driver,SECONDS_WAIT, start_ups)
+
     #1-github
     #2-estrarre informazioni startup per ogni pagina di lista startup
     #3-andare a vedere numero massimo pagine e mettere un limite in un if su number of pages
     #4-estrarre le informazioni desiderate dopo il test del punto 2
-    while(there_are_pages[0]):
-        if there_are_pages[1] is not None:
-            try:
-                number_of_page = number_of_page + 1
-                print('Page: ' + str(number_of_page))
-                if(number_of_page == 15):
-                    break
-                driver.execute_script("arguments[0].click();", there_are_pages[1])             
-                scrap_page_start_up(driver,SECONDS_WAIT, start_ups)
-            except StaleElementReferenceException:
-                blank = True          
-        there_are_pages = check_pages_availability(driver)
+    while(number_of_page < pages):  
+        forward_icon = WebDriverWait(driver, 2).until(
+            EC.presence_of_element_located((By.XPATH, '//div[@class="ui pagination menu grid customNavigator"]//a[@title="Go to next page" and @rel="next"]'))
+        )
+        driver.execute_script("arguments[0].click();", forward_icon)    
+        print('Page: ' + str(number_of_page))
+
+        scrap_page_start_up(driver,SECONDS_WAIT, start_ups)
+        number_of_page = number_of_page + 1
 finally:
     driver.close()
