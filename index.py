@@ -3,9 +3,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
+import undetected_chromedriver as uc
 
 service = webdriver.ChromeService()
 options = webdriver.ChromeOptions()
+#options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36')
+options.add_argument('--disable-extensions')
 
 SECONDS_WAIT = 5
 
@@ -20,20 +23,21 @@ def scrap_page_start_up(driver, seconds_wait, my_list):
     length = len(page_start_ups)
     i = 0
     while i < length:
-        discover_button = WebDriverWait(driver, SECONDS_WAIT).until(
-        EC.presence_of_all_elements_located((By.XPATH, "//div[@class='ui button rounded  black']"))
-        )
-        driver.execute_script("arguments[0].click();", discover_button[i])
-        # WebDriverWait(driver, seconds_wait).until(
-        #     EC.staleness_of(discover_button[i])
-        # )
-        location = WebDriverWait(driver, SECONDS_WAIT).until(
-        EC.presence_of_element_located((By.XPATH, "//h2[@class='ui header']"))
-        )
+        try:
+            discover_button = WebDriverWait(driver, SECONDS_WAIT).until(
+            EC.presence_of_all_elements_located((By.XPATH, "//div[@class='ui button rounded  black']"))
+            )
+            driver.execute_script("arguments[0].click();", discover_button[i])
+            location = WebDriverWait(driver, SECONDS_WAIT).until(
+            EC.presence_of_element_located((By.XPATH, "//h2[@class='ui header']"))
+            )
+        except:
+            print('error detected.')
+            continue
         my_list.append(location.text)
         print(location.text)
-        driver.back()
         i = i + 1
+        driver.back()  
 
 def pages_available(driver, seconds_wait=10):
     try:
@@ -66,11 +70,9 @@ def pages_available(driver, seconds_wait=10):
 
 if HEADLESS:
     options.add_argument('--headless')
-    options.add_argument('window-size=1200x800')
-    options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36')
-    options.add_argument('--disable-extensions')
     
-driver = webdriver.Chrome(service=service,options=options)
+driver = uc.Chrome(service=service,options=options)
+driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
 driver.get('https://startup.registroimprese.it/isin/home')
 
 
@@ -116,4 +118,5 @@ try:
         print('Page: ' + str(number_of_page))
         scrap_page_start_up(driver,SECONDS_WAIT, start_ups)     
 finally:
+    
     driver.close()
