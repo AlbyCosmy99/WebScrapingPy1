@@ -3,7 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import StaleElementReferenceException, TimeoutException
-
+import time
 service = webdriver.ChromeService()
 options = webdriver.ChromeOptions()
 
@@ -12,6 +12,7 @@ SECONDS_WAIT = 5
 HEADLESS = False
 
 def scrap_page_start_up(driver, seconds_wait, my_list):
+    time.sleep(1)
     page_start_ups = WebDriverWait(driver, seconds_wait).until(
         EC.presence_of_all_elements_located((By.ID, "searchResults"))
     )
