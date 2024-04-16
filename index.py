@@ -100,10 +100,6 @@ try:
 
     scrap_page_start_up(driver,SECONDS_WAIT, start_ups)
 
-    #1-github
-    #2-estrarre informazioni startup per ogni pagina di lista startup
-    #3-andare a vedere numero massimo pagine e mettere un limite in un if su number of pages
-    #4-estrarre le informazioni desiderate dopo il test del punto 2
     while(number_of_page < pages):  
         forward_icon = WebDriverWait(driver, 2).until(
             EC.presence_of_element_located((By.XPATH, '//div[@class="ui pagination menu grid customNavigator"]//a[@title="Go to next page" and @rel="next"]'))
