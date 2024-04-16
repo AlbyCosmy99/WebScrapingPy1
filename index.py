@@ -30,7 +30,8 @@ def scrap_page_start_up(driver, seconds_wait, my_list):
         location = WebDriverWait(driver, SECONDS_WAIT).until(
         EC.presence_of_element_located((By.XPATH, "//div[@class='ui grid']//div[@class='twelve wide column']//h2"))
         )
-        my_list.append(location.text)
+        print(location.text)
+        #my_list.append(location.text)
         driver.back()
         i = i + 1
 
