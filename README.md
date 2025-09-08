@@ -1,4 +1,4 @@
-# Web Scraping - https://startup.registroimprese.it
+# Web Scraping of Italian startups 
 
 A Python project for automated **web scraping of Italian startups** from the official [Registro Imprese - Startup](https://startup.registroimprese.it/isin/home) portal.  
 This script was built using **Selenium** and **undetected-chromedriver** to bypass bot detection and interact with dynamic content.
